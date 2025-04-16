@@ -1,56 +1,86 @@
 const std = @import("std");
+pub const native = @import("native.zig");
+
 const zeroes = std.mem.zeroes;
-const promoteIntLiteral = std.zig.c_translation.promoteIntLiteral;
 
 pub const GLFWglproc = ?*const fn () callconv(.c) void;
 pub const GLFWvkproc = ?*const fn () callconv(.c) void;
 
-pub const Monitorfun = ?*const fn (?*Monitor, c_int) callconv(.c) void;
+pub const Monitorfun = ?*const fn (moniter: ?*Monitor, event: Event) callconv(.c) void;
 
 pub const Monitor = opaque {
-    pub extern fn glfwGetMonitors(count: [*c]c_int) [*c]?*Monitor;
-    pub extern fn glfwGetPrimaryMonitor() ?*Monitor;
-    pub extern fn glfwGetMonitorPos(monitor: ?*Monitor, xpos: [*c]c_int, ypos: [*c]c_int) void;
-    pub extern fn glfwGetMonitorWorkarea(monitor: ?*Monitor, xpos: [*c]c_int, ypos: [*c]c_int, width: [*c]c_int, height: [*c]c_int) void;
-    pub extern fn glfwGetMonitorPhysicalSize(monitor: ?*Monitor, widthMM: [*c]c_int, heightMM: [*c]c_int) void;
-    pub extern fn glfwGetMonitorContentScale(monitor: ?*Monitor, xscale: [*c]f32, yscale: [*c]f32) void;
-    pub extern fn glfwGetMonitorName(monitor: ?*Monitor) [*c]const u8;
-    pub extern fn glfwSetMonitorUserPointer(monitor: ?*Monitor, pointer: ?*anyopaque) void;
-    pub extern fn glfwGetMonitorUserPointer(monitor: ?*Monitor) ?*anyopaque;
-    pub extern fn glfwSetMonitorCallback(callback: Monitorfun) Monitorfun;
-    pub extern fn glfwGetVideoModes(monitor: ?*Monitor, count: [*c]c_int) [*c]const Vidmode;
-    pub extern fn glfwGetVideoMode(monitor: ?*Monitor) [*c]const Vidmode;
-    pub extern fn glfwSetGamma(monitor: ?*Monitor, gamma: f32) void;
-    pub extern fn glfwGetGammaRamp(monitor: ?*Monitor) [*c]const Gammaramp;
-    pub extern fn glfwSetGammaRamp(monitor: ?*Monitor, ramp: [*c]const Gammaramp) void;
+    extern fn glfwGetMonitors(count: *c_int) ?[*]?*Monitor;
+    pub const getMonitors = glfwGetMonitors;
+
+    extern fn glfwGetPrimaryMonitor() ?*Monitor;
+    pub const getPrimaryMonitor = glfwGetPrimaryMonitor;
+
+    extern fn glfwGetMonitorPos(monitor: *Monitor, xpos: ?*c_int, ypos: ?*c_int) void;
+    pub const getMonitorPos = glfwGetMonitorPos;
+
+    extern fn glfwGetMonitorWorkarea(monitor: *Monitor, xpos: ?*c_int, ypos: ?*c_int, width: ?*c_int, height: ?*c_int) void;
+    pub const getWorkarea = glfwGetMonitorWorkarea;
+
+    extern fn glfwGetMonitorPhysicalSize(monitor: *Monitor, widthMM: ?*c_int, heightMM: ?*c_int) void;
+    pub const getPhysicalSize = glfwGetMonitorPhysicalSize;
+
+    extern fn glfwGetMonitorContentScale(monitor: *Monitor, xscale: ?*f32, yscale: ?*f32) void;
+    pub const getContentScale = glfwGetMonitorContentScale;
+
+    extern fn glfwGetMonitorName(monitor: *Monitor) ?[*:0]const u8;
+    pub const getName = glfwGetMonitorName;
+
+    extern fn glfwSetMonitorUserPointer(monitor: *Monitor, pointer: ?*anyopaque) void;
+    pub const setUserPointer = glfwSetMonitorUserPointer;
+
+    extern fn glfwGetMonitorUserPointer(monitor: *Monitor) ?*anyopaque;
+    pub const getUserPointer = glfwGetMonitorUserPointer;
+
+    extern fn glfwGetVideoModes(monitor: *Monitor, count: *c_int) ?[*]const Vidmode;
+    pub const getVideoModes = glfwGetVideoModes;
+
+    extern fn glfwGetVideoMode(monitor: *Monitor) ?*const Vidmode;
+    pub const getVideoMode = glfwGetVideoMode;
+
+    extern fn glfwSetGamma(monitor: *Monitor, gamma: f32) void;
+    pub const setGamma = glfwSetGamma;
+
+    extern fn glfwGetGammaRamp(monitor: *Monitor) ?*const Gammaramp;
+    pub const getGammaRamp = glfwGetGammaRamp;
+
+    extern fn glfwSetGammaRamp(monitor: *Monitor, ramp: ?*const Gammaramp) void;
+    pub const setGammaRamp = glfwSetGammaRamp;
+
+    extern fn glfwSetMonitorCallback(callback: Monitorfun) Monitorfun;
+    pub const setMonitorCallback = glfwSetMonitorCallback;
 };
 
 pub const Windowposfun = ?*const fn (window: ?*Window, xpos: c_int, ypos: c_int) callconv(.c) void;
 pub const Windowsizefun = ?*const fn (window: ?*Window, width: c_int, height: c_int) callconv(.c) void;
 pub const Windowclosefun = ?*const fn (window: ?*Window) callconv(.c) void;
 pub const Windowrefreshfun = ?*const fn (window: ?*Window) callconv(.c) void;
-pub const Windowfocusfun = ?*const fn (window: ?*Window, focused: c_int) callconv(.c) void;
+pub const Windowfocusfun = ?*const fn (window: ?*Window, focused: bool) callconv(.c) void;
 pub const Windowiconifyfun = ?*const fn (window: ?*Window, iconified: c_int) callconv(.c) void;
 pub const Windowmaximizefun = ?*const fn (window: ?*Window, maximized: c_int) callconv(.c) void;
 pub const Framebuffersizefun = ?*const fn (window: ?*Window, width: c_int, height: c_int) callconv(.c) void;
 pub const Windowcontentscalefun = ?*const fn (window: ?*Window, xscale: f32, yscale: f32) callconv(.c) void;
-pub const Mousebuttonfun = ?*const fn (window: ?*Window, button: c_int, action: c_int, mods: c_int) callconv(.c) void;
+pub const Mousebuttonfun = ?*const fn (window: ?*Window, button: MouseButton, action: ClickAction, mods: Mods) callconv(.c) void;
 pub const Cursorposfun = ?*const fn (window: ?*Window, xpos: f64, ypos: f64) callconv(.c) void;
-pub const Cursorenterfun = ?*const fn (window: ?*Window, entered: c_int) callconv(.c) void;
+pub const Cursorenterfun = ?*const fn (window: ?*Window, entered: bool) callconv(.c) void;
 pub const Scrollfun = ?*const fn (window: ?*Window, xoffset: f64, yoffset: f64) callconv(.c) void;
-pub const Keyfun = ?*const fn (window: ?*Window, key: Key, scancode: c_int, action: KeyAction, mods: Mods) callconv(.c) void;
+pub const Keyfun = ?*const fn (window: ?*Window, key: Key, scancode: c_int, action: ClickAction, mods: Mods) callconv(.c) void;
 pub const Charfun = ?*const fn (window: ?*Window, codepoint: c_uint) callconv(.c) void;
-pub const Charmodsfun = ?*const fn (window: ?*Window, codepoint: c_uint, mods: c_int) callconv(.c) void;
-pub const Dropfun = ?*const fn (window: ?*Window, path_count: c_int, paths: [*c][*c]const u8) callconv(.c) void;
+pub const Charmodsfun = ?*const fn (window: ?*Window, codepoint: c_uint, mods: Mods) callconv(.c) void;
+pub const Dropfun = ?*const fn (window: ?*Window, path_count: c_int, paths: [*][*:0]const u8) callconv(.c) void;
 
 pub const Window = opaque {
     extern fn glfwDefaultWindowHints() void;
     pub const defaultHints = glfwDefaultWindowHints;
 
-    extern fn glfwWindowHint(hint: c_int, value: c_int) void;
+    extern fn glfwWindowHint(hint: WindowHint, value: WindowHintValue) void;
     pub const hint = glfwWindowHint;
 
-    extern fn glfwWindowHintString(hint: c_int, value: [*c]const u8) void;
+    extern fn glfwWindowHintString(hint: WindowHint, value: [*:0]const u8) void;
     pub const hintString = glfwWindowHintString;
 
     extern fn glfwCreateWindow(width: c_int, height: c_int, title: [*:0]const u8, monitor: ?*Monitor, share: ?*Window) ?*Window;
@@ -134,10 +164,10 @@ pub const Window = opaque {
     extern fn glfwSetWindowMonitor(window: *Window, monitor: ?*Monitor, xpos: c_int, ypos: c_int, width: c_int, height: c_int, refreshRate: c_int) void;
     pub const setMonitor = glfwSetWindowMonitor;
 
-    extern fn glfwGetWindowAttrib(window: *Window, attrib: c_int) c_int;
+    extern fn glfwGetWindowAttrib(window: *Window, attrib: WindowAttribute) bool;
     pub const getAttrib = glfwGetWindowAttrib;
 
-    extern fn glfwSetWindowAttrib(window: *Window, attrib: c_int, value: c_int) void;
+    extern fn glfwSetWindowAttrib(window: *Window, attrib: WindowAttribute, value: bool) void;
     pub const setAttrib = glfwSetWindowAttrib;
 
     extern fn glfwSetWindowUserPointer(window: *Window, pointer: ?*anyopaque) void;
@@ -146,13 +176,13 @@ pub const Window = opaque {
     extern fn glfwGetWindowUserPointer(window: *Window) ?*anyopaque;
     pub const getUserPointer = glfwGetWindowUserPointer;
 
-    extern fn glfwGetInputMode(window: *Window, mode: c_int) c_int;
+    extern fn glfwGetInputMode(window: *Window, mode: InputMode) InputModeValue;
     pub const getInputMode = glfwGetInputMode;
 
-    extern fn glfwSetInputMode(window: *Window, mode: c_int, value: c_int) void;
+    extern fn glfwSetInputMode(window: *Window, mode: InputMode, value: InputModeValue) void;
     pub const setInputMode = glfwSetInputMode;
 
-    extern fn glfwGetKey(window: *Window, key: Key) KeyAction;
+    extern fn glfwGetKey(window: *Window, key: Key) ClickAction;
     pub const getKey = glfwGetKey;
 
     extern fn glfwGetMouseButton(window: *Window, button: c_int) c_int;
@@ -167,10 +197,10 @@ pub const Window = opaque {
     extern fn glfwSetCursor(window: *Window, cursor: ?*Cursor) void;
     pub const setCursor = glfwSetCursor;
 
-    extern fn glfwSetClipboardString(window: *Window, string: [*:0]const u8) void;
+    extern fn glfwSetClipboardString(window: ?*Window, string: [*:0]const u8) void;
     pub const setClipboardString = glfwSetClipboardString;
 
-    extern fn glfwGetClipboardString(window: *Window) [*:0]const u8;
+    extern fn glfwGetClipboardString(window: ?*Window) ?[*:0]const u8;
     pub const getClipboardString = glfwGetClipboardString;
 
     extern fn glfwMakeContextCurrent(window: ?*Window) void;
@@ -243,7 +273,7 @@ pub const Cursor = opaque {
 };
 
 pub const Errorfun = ?*const fn (error_code: Error, description: [*:0]const u8) callconv(.c) void;
-pub const Joystickfun = ?*const fn (jid: c_int, event: c_int) callconv(.c) void;
+pub const Joystickfun = ?*const fn (jid: JoyStick, event: Event) callconv(.c) void;
 
 pub const Vidmode = extern struct {
     width: c_int = zeroes(c_int),
@@ -268,8 +298,27 @@ pub const Image = extern struct {
 };
 
 pub const Gamepadstate = extern struct {
-    buttons: [15]u8 = zeroes([15]u8),
+    buttons: [15]ClickAction = zeroes([15]ClickAction),
     axes: [6]f32 = zeroes([6]f32),
+
+    pub fn getButtonAction(self: Gamepadstate, button: GamepadButton) ClickAction {
+        return self.buttons[@intCast(@intFromEnum(button))];
+    }
+
+    pub fn getAxisState(self: Gamepadstate, axis: GamepadAxis) f32 {
+        return self.axes[@intCast(@intFromEnum(axis))];
+    }
+};
+
+pub const Allocatefun = ?*const fn (size: usize, user: ?*anyopaque) callconv(.c) ?*anyopaque;
+pub const Reallocatefun = ?*const fn (block: ?*anyopaque, size: usize, user: ?*anyopaque) callconv(.c) ?*anyopaque;
+pub const Deallocatefun = ?*const fn (block: ?*anyopaque, user: ?*anyopaque) callconv(.c) void;
+
+pub const Allocator = extern struct {
+    allocate: Allocatefun,
+    reallocate: Reallocatefun,
+    deallocate: Deallocatefun,
+    user: ?*anyopaque,
 };
 
 extern fn glfwInit() bool;
@@ -278,8 +327,14 @@ pub const init = glfwInit;
 extern fn glfwTerminate() void;
 pub const terminate = glfwTerminate;
 
-extern fn glfwInitHint(hint: c_int, value: c_int) void;
+extern fn glfwInitHint(hint: InitHint, value: InitHintValue) void;
 pub const initHint = glfwInitHint;
+
+extern fn glfwInitAllocator(allocator: ?*const Allocator) void;
+pub const initAllocator = glfwInitAllocator;
+
+extern fn glfwInitVulkanLoader(loader: ?*anyopaque) void;
+pub const initVulkanLoader = glfwInitVulkanLoader;
 
 extern fn glfwGetVersion(major: ?*c_int, minor: ?*c_int, rev: ?*c_int) void;
 pub const getVersion = glfwGetVersion;
@@ -292,6 +347,12 @@ pub const getError = glfwGetError;
 
 extern fn glfwSetErrorCallback(callback: Errorfun) Errorfun;
 pub const setErrorCallback = glfwSetErrorCallback;
+
+extern fn glfwGetPlatform() Platform;
+pub const getPlatform = glfwGetPlatform;
+
+extern fn glfwPlatformSupported(platform: Platform) bool;
+pub const platformSupported = glfwPlatformSupported;
 
 extern fn glfwPollEvents() void;
 pub const pollEvents = glfwPollEvents;
@@ -308,32 +369,34 @@ pub const postEmptyEvent = glfwPostEmptyEvent;
 extern fn glfwRawMouseMotionSupported() c_int;
 pub const rawMouseMotionSupported = glfwRawMouseMotionSupported;
 
-pub extern fn glfwJoystickPresent(jid: c_int) c_int;
-pub extern fn glfwGetJoystickAxes(jid: c_int, count: [*c]c_int) [*c]const f32;
-pub extern fn glfwGetJoystickButtons(jid: c_int, count: [*c]c_int) [*c]const u8;
-pub extern fn glfwGetJoystickHats(jid: c_int, count: [*c]c_int) [*c]const u8;
-pub extern fn glfwGetJoystickName(jid: c_int) [*c]const u8;
-pub extern fn glfwGetJoystickGUID(jid: c_int) [*c]const u8;
-pub extern fn glfwSetJoystickUserPointer(jid: c_int, pointer: ?*anyopaque) void;
-pub extern fn glfwGetJoystickUserPointer(jid: c_int) ?*anyopaque;
-pub extern fn glfwJoystickIsGamepad(jid: c_int) c_int;
-pub extern fn glfwSetJoystickCallback(callback: Joystickfun) Joystickfun;
-pub extern fn glfwUpdateGamepadMappings(string: [*c]const u8) c_int;
-pub extern fn glfwGetGamepadName(jid: c_int) [*c]const u8;
-pub extern fn glfwGetGamepadState(jid: c_int, state: [*c]Gamepadstate) c_int;
+extern fn glfwGetTime() f64;
+pub const getTime = glfwGetTime;
 
-pub extern fn glfwGetTime() f64;
-pub extern fn glfwSetTime(time: f64) void;
-pub extern fn glfwGetTimerValue() u64;
-pub extern fn glfwGetTimerFrequency() u64;
+extern fn glfwSetTime(time: f64) void;
+pub const setTime = glfwSetTime;
 
-pub extern fn glfwSwapInterval(interval: c_int) void;
-pub extern fn glfwExtensionSupported(extension: [*c]const u8) c_int;
-pub extern fn glfwGetProcAddress(procname: [*c]const u8) GLFWglproc;
-pub extern fn glfwVulkanSupported() c_int;
-pub extern fn glfwGetRequiredInstanceExtensions(count: [*c]u32) [*c][*c]const u8;
+extern fn glfwGetTimerValue() u64;
+pub const getTimerValue = glfwGetTimerValue;
 
-pub const KeyAction = enum(c_int) {
+extern fn glfwGetTimerFrequency() u64;
+pub const getTimerFrequency = glfwGetTimerFrequency;
+
+extern fn glfwSwapInterval(interval: c_int) void;
+pub const swapInterval = glfwSwapInterval;
+
+extern fn glfwExtensionSupported(extension: [*:0]const u8) bool;
+pub const extensionSupported = glfwExtensionSupported;
+
+extern fn glfwGetProcAddress(procname: [*c]const u8) GLFWglproc;
+pub const getProcAddress = glfwGetProcAddress;
+
+extern fn glfwVulkanSupported() bool;
+pub const vulkanSupported = glfwVulkanSupported;
+
+extern fn glfwGetRequiredInstanceExtensions(count: *u32) ?[*][*:0]const u8;
+pub const getRequiredInstanceExtensions = glfwGetRequiredInstanceExtensions;
+
+pub const ClickAction = enum(u8) {
     release = 0,
     press = 1,
     repeat = 2,
@@ -515,6 +578,11 @@ pub const Error = enum(c_int) {
     platform_error = 0x00010008,
     format_unavailable = 0x00010009,
     no_window_context = 0x0001000A,
+    cursor_unavailable = 0x0001000B,
+    feature_unavailable = 0x0001000C,
+    feature_unimplemented = 0x0001000D,
+    platform_unavailable = 0x0001000E,
+    _,
 
     pub const ErrorZ = error{
         not_initialized,
@@ -527,6 +595,10 @@ pub const Error = enum(c_int) {
         platform_error,
         format_unavailable,
         no_window_context,
+        cursor_unavailable,
+        feature_unavailable,
+        feature_unimplemented,
+        platform_unavailable,
     };
 
     pub fn check(self: Error) ErrorZ!void {
@@ -541,6 +613,10 @@ pub const Error = enum(c_int) {
             .platform_error => ErrorZ.platform_error,
             .format_unavailable => ErrorZ.format_unavailable,
             .no_window_context => ErrorZ.no_window_context,
+            .cursor_unavailable => ErrorZ.cursor_unavailable,
+            .feature_unavailable => ErrorZ.feature_unavailable,
+            .feature_unimplemented => ErrorZ.feature_unimplemented,
+            .platform_unavailable => ErrorZ.platform_unavailable,
             else => {},
         };
     }
@@ -553,163 +629,369 @@ pub const CursorShape = enum(c_int) {
     hand = 0x00036004,
     hresize = 0x00036005,
     vresize = 0x00036006,
+    _,
 };
 
-pub const Bool = enum(c_int) {
-    true = 1,
-    false = 0,
+pub const InputMode = enum(c_int) {
+    sticky_keys = 0x00033002,
+    sticky_mouse_buttons = 0x00033003,
+    lock_key_mods = 0x00033004,
+    raw_mouse_motion = 0x00033005,
+    cursor = 0x00033001,
+    _,
 };
 
-pub const GLFW_VERSION_MAJOR = @as(c_int, 3);
-pub const GLFW_VERSION_MINOR = @as(c_int, 3);
-pub const GLFW_VERSION_REVISION = @as(c_int, 10);
+pub const InputCursorMode = enum(c_int) {
+    normal = 0x00034001,
+    hidden = 0x00034002,
+    disabled = 0x00034003,
+    captured = 0x00034004,
+    _,
+};
 
-pub const GLFW_TRUE = @as(c_int, 1);
-pub const GLFW_FALSE = @as(c_int, 0);
+pub const InputModeValue = extern union {
+    boolean: bool,
+    cursor: InputCursorMode,
+};
 
-pub const GLFW_HAT_CENTERED = @as(c_int, 0);
-pub const GLFW_HAT_UP = @as(c_int, 1);
-pub const GLFW_HAT_RIGHT = @as(c_int, 2);
-pub const GLFW_HAT_DOWN = @as(c_int, 4);
-pub const GLFW_HAT_LEFT = @as(c_int, 8);
-pub const GLFW_HAT_RIGHT_UP = GLFW_HAT_RIGHT | GLFW_HAT_UP;
-pub const GLFW_HAT_RIGHT_DOWN = GLFW_HAT_RIGHT | GLFW_HAT_DOWN;
-pub const GLFW_HAT_LEFT_UP = GLFW_HAT_LEFT | GLFW_HAT_UP;
-pub const GLFW_HAT_LEFT_DOWN = GLFW_HAT_LEFT | GLFW_HAT_DOWN;
+pub const JoyStick = enum(c_int) {
+    @"1" = 0,
+    @"2" = 1,
+    @"3" = 2,
+    @"4" = 3,
+    @"5" = 4,
+    @"6" = 5,
+    @"7" = 6,
+    @"8" = 7,
+    @"9" = 8,
+    @"10" = 9,
+    @"11" = 10,
+    @"12" = 11,
+    @"13" = 12,
+    @"14" = 13,
+    @"15" = 14,
+    @"16" = 15,
+    _,
 
-pub const GLFW_MOUSE_BUTTON_1 = @as(c_int, 0);
-pub const GLFW_MOUSE_BUTTON_2 = @as(c_int, 1);
-pub const GLFW_MOUSE_BUTTON_3 = @as(c_int, 2);
-pub const GLFW_MOUSE_BUTTON_4 = @as(c_int, 3);
-pub const GLFW_MOUSE_BUTTON_5 = @as(c_int, 4);
-pub const GLFW_MOUSE_BUTTON_6 = @as(c_int, 5);
-pub const GLFW_MOUSE_BUTTON_7 = @as(c_int, 6);
-pub const GLFW_MOUSE_BUTTON_8 = @as(c_int, 7);
-pub const GLFW_MOUSE_BUTTON_LAST = GLFW_MOUSE_BUTTON_8;
-pub const GLFW_MOUSE_BUTTON_LEFT = GLFW_MOUSE_BUTTON_1;
-pub const GLFW_MOUSE_BUTTON_RIGHT = GLFW_MOUSE_BUTTON_2;
-pub const GLFW_MOUSE_BUTTON_MIDDLE = GLFW_MOUSE_BUTTON_3;
+    pub const last: JoyStick = .@"16";
 
-pub const GLFW_JOYSTICK_1 = @as(c_int, 0);
-pub const GLFW_JOYSTICK_2 = @as(c_int, 1);
-pub const GLFW_JOYSTICK_3 = @as(c_int, 2);
-pub const GLFW_JOYSTICK_4 = @as(c_int, 3);
-pub const GLFW_JOYSTICK_5 = @as(c_int, 4);
-pub const GLFW_JOYSTICK_6 = @as(c_int, 5);
-pub const GLFW_JOYSTICK_7 = @as(c_int, 6);
-pub const GLFW_JOYSTICK_8 = @as(c_int, 7);
-pub const GLFW_JOYSTICK_9 = @as(c_int, 8);
-pub const GLFW_JOYSTICK_10 = @as(c_int, 9);
-pub const GLFW_JOYSTICK_11 = @as(c_int, 10);
-pub const GLFW_JOYSTICK_12 = @as(c_int, 11);
-pub const GLFW_JOYSTICK_13 = @as(c_int, 12);
-pub const GLFW_JOYSTICK_14 = @as(c_int, 13);
-pub const GLFW_JOYSTICK_15 = @as(c_int, 14);
-pub const GLFW_JOYSTICK_16 = @as(c_int, 15);
-pub const GLFW_JOYSTICK_LAST = GLFW_JOYSTICK_16;
+    extern fn glfwJoystickPresent(jid: JoyStick) bool;
+    pub const present = glfwJoystickPresent;
 
-pub const GLFW_GAMEPAD_BUTTON_A = @as(c_int, 0);
-pub const GLFW_GAMEPAD_BUTTON_B = @as(c_int, 1);
-pub const GLFW_GAMEPAD_BUTTON_X = @as(c_int, 2);
-pub const GLFW_GAMEPAD_BUTTON_Y = @as(c_int, 3);
-pub const GLFW_GAMEPAD_BUTTON_LEFT_BUMPER = @as(c_int, 4);
-pub const GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER = @as(c_int, 5);
-pub const GLFW_GAMEPAD_BUTTON_BACK = @as(c_int, 6);
-pub const GLFW_GAMEPAD_BUTTON_START = @as(c_int, 7);
-pub const GLFW_GAMEPAD_BUTTON_GUIDE = @as(c_int, 8);
-pub const GLFW_GAMEPAD_BUTTON_LEFT_THUMB = @as(c_int, 9);
-pub const GLFW_GAMEPAD_BUTTON_RIGHT_THUMB = @as(c_int, 10);
-pub const GLFW_GAMEPAD_BUTTON_DPAD_UP = @as(c_int, 11);
-pub const GLFW_GAMEPAD_BUTTON_DPAD_RIGHT = @as(c_int, 12);
-pub const GLFW_GAMEPAD_BUTTON_DPAD_DOWN = @as(c_int, 13);
-pub const GLFW_GAMEPAD_BUTTON_DPAD_LEFT = @as(c_int, 14);
-pub const GLFW_GAMEPAD_BUTTON_LAST = GLFW_GAMEPAD_BUTTON_DPAD_LEFT;
-pub const GLFW_GAMEPAD_BUTTON_CROSS = GLFW_GAMEPAD_BUTTON_A;
-pub const GLFW_GAMEPAD_BUTTON_CIRCLE = GLFW_GAMEPAD_BUTTON_B;
-pub const GLFW_GAMEPAD_BUTTON_SQUARE = GLFW_GAMEPAD_BUTTON_X;
-pub const GLFW_GAMEPAD_BUTTON_TRIANGLE = GLFW_GAMEPAD_BUTTON_Y;
-pub const GLFW_GAMEPAD_AXIS_LEFT_X = @as(c_int, 0);
-pub const GLFW_GAMEPAD_AXIS_LEFT_Y = @as(c_int, 1);
-pub const GLFW_GAMEPAD_AXIS_RIGHT_X = @as(c_int, 2);
-pub const GLFW_GAMEPAD_AXIS_RIGHT_Y = @as(c_int, 3);
-pub const GLFW_GAMEPAD_AXIS_LEFT_TRIGGER = @as(c_int, 4);
-pub const GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER = @as(c_int, 5);
-pub const GLFW_GAMEPAD_AXIS_LAST = GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER;
+    extern fn glfwGetJoystickAxes(jid: JoyStick, count: [*c]c_int) ?[*]const f32;
+    pub const getAxes = glfwGetJoystickAxes;
 
-pub const GLFW_FOCUSED = promoteIntLiteral(c_int, 0x00020001, .hex);
-pub const GLFW_ICONIFIED = promoteIntLiteral(c_int, 0x00020002, .hex);
-pub const GLFW_RESIZABLE = promoteIntLiteral(c_int, 0x00020003, .hex);
-pub const GLFW_VISIBLE = promoteIntLiteral(c_int, 0x00020004, .hex);
-pub const GLFW_DECORATED = promoteIntLiteral(c_int, 0x00020005, .hex);
-pub const GLFW_AUTO_ICONIFY = promoteIntLiteral(c_int, 0x00020006, .hex);
-pub const GLFW_FLOATING = promoteIntLiteral(c_int, 0x00020007, .hex);
-pub const GLFW_MAXIMIZED = promoteIntLiteral(c_int, 0x00020008, .hex);
-pub const GLFW_CENTER_CURSOR = promoteIntLiteral(c_int, 0x00020009, .hex);
-pub const GLFW_TRANSPARENT_FRAMEBUFFER = promoteIntLiteral(c_int, 0x0002000A, .hex);
-pub const GLFW_HOVERED = promoteIntLiteral(c_int, 0x0002000B, .hex);
-pub const GLFW_FOCUS_ON_SHOW = promoteIntLiteral(c_int, 0x0002000C, .hex);
-pub const GLFW_RED_BITS = promoteIntLiteral(c_int, 0x00021001, .hex);
-pub const GLFW_GREEN_BITS = promoteIntLiteral(c_int, 0x00021002, .hex);
-pub const GLFW_BLUE_BITS = promoteIntLiteral(c_int, 0x00021003, .hex);
-pub const GLFW_ALPHA_BITS = promoteIntLiteral(c_int, 0x00021004, .hex);
-pub const GLFW_DEPTH_BITS = promoteIntLiteral(c_int, 0x00021005, .hex);
-pub const GLFW_STENCIL_BITS = promoteIntLiteral(c_int, 0x00021006, .hex);
-pub const GLFW_ACCUM_RED_BITS = promoteIntLiteral(c_int, 0x00021007, .hex);
-pub const GLFW_ACCUM_GREEN_BITS = promoteIntLiteral(c_int, 0x00021008, .hex);
-pub const GLFW_ACCUM_BLUE_BITS = promoteIntLiteral(c_int, 0x00021009, .hex);
-pub const GLFW_ACCUM_ALPHA_BITS = promoteIntLiteral(c_int, 0x0002100A, .hex);
-pub const GLFW_AUX_BUFFERS = promoteIntLiteral(c_int, 0x0002100B, .hex);
-pub const GLFW_STEREO = promoteIntLiteral(c_int, 0x0002100C, .hex);
-pub const GLFW_SAMPLES = promoteIntLiteral(c_int, 0x0002100D, .hex);
-pub const GLFW_SRGB_CAPABLE = promoteIntLiteral(c_int, 0x0002100E, .hex);
-pub const GLFW_REFRESH_RATE = promoteIntLiteral(c_int, 0x0002100F, .hex);
-pub const GLFW_DOUBLEBUFFER = promoteIntLiteral(c_int, 0x00021010, .hex);
-pub const GLFW_CLIENT_API = promoteIntLiteral(c_int, 0x00022001, .hex);
-pub const GLFW_CONTEXT_VERSION_MAJOR = promoteIntLiteral(c_int, 0x00022002, .hex);
-pub const GLFW_CONTEXT_VERSION_MINOR = promoteIntLiteral(c_int, 0x00022003, .hex);
-pub const GLFW_CONTEXT_REVISION = promoteIntLiteral(c_int, 0x00022004, .hex);
-pub const GLFW_CONTEXT_ROBUSTNESS = promoteIntLiteral(c_int, 0x00022005, .hex);
-pub const GLFW_OPENGL_FORWARD_COMPAT = promoteIntLiteral(c_int, 0x00022006, .hex);
-pub const GLFW_OPENGL_DEBUG_CONTEXT = promoteIntLiteral(c_int, 0x00022007, .hex);
-pub const GLFW_OPENGL_PROFILE = promoteIntLiteral(c_int, 0x00022008, .hex);
-pub const GLFW_CONTEXT_RELEASE_BEHAVIOR = promoteIntLiteral(c_int, 0x00022009, .hex);
-pub const GLFW_CONTEXT_NO_ERROR = promoteIntLiteral(c_int, 0x0002200A, .hex);
-pub const GLFW_CONTEXT_CREATION_API = promoteIntLiteral(c_int, 0x0002200B, .hex);
-pub const GLFW_SCALE_TO_MONITOR = promoteIntLiteral(c_int, 0x0002200C, .hex);
-pub const GLFW_COCOA_RETINA_FRAMEBUFFER = promoteIntLiteral(c_int, 0x00023001, .hex);
-pub const GLFW_COCOA_FRAME_NAME = promoteIntLiteral(c_int, 0x00023002, .hex);
-pub const GLFW_COCOA_GRAPHICS_SWITCHING = promoteIntLiteral(c_int, 0x00023003, .hex);
-pub const GLFW_X11_CLASS_NAME = promoteIntLiteral(c_int, 0x00024001, .hex);
-pub const GLFW_X11_INSTANCE_NAME = promoteIntLiteral(c_int, 0x00024002, .hex);
-pub const GLFW_NO_API = @as(c_int, 0);
-pub const GLFW_OPENGL_API = promoteIntLiteral(c_int, 0x00030001, .hex);
-pub const GLFW_OPENGL_ES_API = promoteIntLiteral(c_int, 0x00030002, .hex);
-pub const GLFW_NO_ROBUSTNESS = @as(c_int, 0);
-pub const GLFW_NO_RESET_NOTIFICATION = promoteIntLiteral(c_int, 0x00031001, .hex);
-pub const GLFW_LOSE_CONTEXT_ON_RESET = promoteIntLiteral(c_int, 0x00031002, .hex);
-pub const GLFW_OPENGL_ANY_PROFILE = @as(c_int, 0);
-pub const GLFW_OPENGL_CORE_PROFILE = promoteIntLiteral(c_int, 0x00032001, .hex);
-pub const GLFW_OPENGL_COMPAT_PROFILE = promoteIntLiteral(c_int, 0x00032002, .hex);
-pub const GLFW_CURSOR = promoteIntLiteral(c_int, 0x00033001, .hex);
-pub const GLFW_STICKY_KEYS = promoteIntLiteral(c_int, 0x00033002, .hex);
-pub const GLFW_STICKY_MOUSE_BUTTONS = promoteIntLiteral(c_int, 0x00033003, .hex);
-pub const GLFW_LOCK_KEY_MODS = promoteIntLiteral(c_int, 0x00033004, .hex);
-pub const GLFW_RAW_MOUSE_MOTION = promoteIntLiteral(c_int, 0x00033005, .hex);
-pub const GLFW_CURSOR_NORMAL = promoteIntLiteral(c_int, 0x00034001, .hex);
-pub const GLFW_CURSOR_HIDDEN = promoteIntLiteral(c_int, 0x00034002, .hex);
-pub const GLFW_CURSOR_DISABLED = promoteIntLiteral(c_int, 0x00034003, .hex);
-pub const GLFW_ANY_RELEASE_BEHAVIOR = @as(c_int, 0);
-pub const GLFW_RELEASE_BEHAVIOR_FLUSH = promoteIntLiteral(c_int, 0x00035001, .hex);
-pub const GLFW_RELEASE_BEHAVIOR_NONE = promoteIntLiteral(c_int, 0x00035002, .hex);
-pub const GLFW_NATIVE_CONTEXT_API = promoteIntLiteral(c_int, 0x00036001, .hex);
-pub const GLFW_EGL_CONTEXT_API = promoteIntLiteral(c_int, 0x00036002, .hex);
-pub const GLFW_OSMESA_CONTEXT_API = promoteIntLiteral(c_int, 0x00036003, .hex);
-pub const GLFW_WAYLAND_PREFER_LIBDECOR = promoteIntLiteral(c_int, 0x00038001, .hex);
-pub const GLFW_WAYLAND_DISABLE_LIBDECOR = promoteIntLiteral(c_int, 0x00038002, .hex);
-pub const GLFW_CONNECTED = promoteIntLiteral(c_int, 0x00040001, .hex);
-pub const GLFW_DISCONNECTED = promoteIntLiteral(c_int, 0x00040002, .hex);
-pub const GLFW_JOYSTICK_HAT_BUTTONS = promoteIntLiteral(c_int, 0x00050001, .hex);
-pub const GLFW_COCOA_CHDIR_RESOURCES = promoteIntLiteral(c_int, 0x00051001, .hex);
-pub const GLFW_COCOA_MENUBAR = promoteIntLiteral(c_int, 0x00051002, .hex);
-pub const GLFW_WAYLAND_LIBDECOR = promoteIntLiteral(c_int, 0x00053001, .hex);
-pub const GLFW_DONT_CARE = -@as(c_int, 1);
+    extern fn glfwGetJoystickButtons(jid: JoyStick, count: [*c]c_int) ?[*]const ClickAction;
+    pub const getButtons = glfwGetJoystickButtons;
+
+    extern fn glfwGetJoystickHats(jid: JoyStick, count: [*c]c_int) ?[*]const JoyStickHat;
+    pub const getHats = glfwGetJoystickHats;
+
+    extern fn glfwGetJoystickName(jid: JoyStick) ?[*:0]const u8;
+    pub const getName = glfwGetJoystickName;
+
+    extern fn glfwGetJoystickGUID(jid: JoyStick) ?[*:0]const u8;
+    pub const getGUID = glfwGetJoystickGUID;
+
+    extern fn glfwSetJoystickUserPointer(jid: JoyStick, pointer: ?*anyopaque) void;
+    pub const setUserPointer = glfwSetJoystickUserPointer;
+
+    extern fn glfwGetJoystickUserPointer(jid: JoyStick) ?*anyopaque;
+    pub const getUserPointer = glfwGetJoystickUserPointer;
+
+    extern fn glfwJoystickIsGamepad(jid: JoyStick) bool;
+    pub const isGamepad = glfwJoystickIsGamepad;
+
+    extern fn glfwGetGamepadName(jid: JoyStick) ?[*:0]const u8;
+    pub const getGamepadName = glfwGetGamepadName;
+
+    extern fn glfwGetGamepadState(jid: JoyStick, state: ?*Gamepadstate) bool;
+    pub const getGamepadState = glfwGetGamepadState;
+
+    extern fn glfwSetJoystickCallback(callback: Joystickfun) Joystickfun;
+    pub const setJoystickCallback = glfwSetJoystickCallback;
+
+    extern fn glfwUpdateGamepadMappings(string: ?[*:0]const u8) bool;
+    pub const updateGamepadMappings = glfwUpdateGamepadMappings;
+};
+
+pub const JoyStickHat = enum(u8) {
+    const hat_up: c_int = 1;
+    const hat_right: c_int = 2;
+    const hat_down: c_int = 4;
+    const hat_left: c_int = 8;
+
+    centered = 0,
+    up = hat_up,
+    right = hat_right,
+    down = hat_down,
+    left = hat_left,
+    right_up = hat_right | hat_up,
+    right_down = hat_right | hat_down,
+    left_up = hat_left | hat_up,
+    left_down = hat_left | hat_down,
+    _,
+};
+
+pub const Event = enum(c_int) {
+    connected = 0x00040001,
+    disconnected = 0x00040002,
+};
+
+pub const MouseButton = enum(c_int) {
+    @"1" = 0,
+    @"2" = 1,
+    @"3" = 2,
+    @"4" = 3,
+    @"5" = 4,
+    @"6" = 5,
+    @"7" = 6,
+    @"8" = 7,
+    _,
+
+    pub const last: MouseButton = .@"8";
+    pub const left: MouseButton = .@"1";
+    pub const right: MouseButton = .@"2";
+    pub const middle: MouseButton = .@"3";
+};
+
+pub const GamepadButton = enum(c_int) {
+    button_a = 0,
+    button_b = 1,
+    button_x = 2,
+    button_y = 3,
+    button_left_bumper = 4,
+    button_right_bumper = 5,
+    button_back = 6,
+    button_start = 7,
+    button_guide = 8,
+    button_left_thumb = 9,
+    button_right_thumb = 10,
+    button_dpad_up = 11,
+    button_dpad_right = 12,
+    button_dpad_down = 13,
+    button_dpad_left = 14,
+    _,
+
+    pub const button_cross: GamepadButton = .button_a;
+    pub const button_circle: GamepadButton = .button_b;
+    pub const button_square: GamepadButton = .button_x;
+    pub const button_triangle: GamepadButton = .button_y;
+    pub const button_last: GamepadButton = .button_dpad_left;
+};
+
+pub const GamepadAxis = enum(c_int) {
+    axis_left_x = 0,
+    axis_left_y = 1,
+    axis_right_x = 2,
+    axis_right_y = 3,
+    axis_left_trigger = 4,
+    axis_right_trigger = 5,
+    _,
+
+    pub const axis_last: GamepadAxis = .axis_right_trigger;
+};
+
+pub const InitHint = enum(c_int) {
+    joystick_hat_buttons = 0x00050001,
+    angle_platform_type = 0x00050002,
+    platform = 0x00050003,
+    cocoa_chdir_resources = 0x00051001,
+    cocoa_menubar = 0x00051002,
+    x11_xcb_vulkan_surface = 0x00052001,
+    wayland_libdecor = 0x00053001,
+    _,
+};
+
+pub const InitHintValue = extern union {
+    boolean: bool,
+    platform: Platform,
+    angle_platform_type: AnglePlatformType,
+    wayland_libdecor: WaylandLibdecor,
+};
+
+pub const WaylandLibdecor = enum(c_int) {
+    prefer_libdecor = 0x00038001,
+    disable_libdecor = 0x00038002,
+    _,
+};
+
+pub const AnglePlatformType = enum(c_int) {
+    none = 0x00037001,
+    opengl = 0x00037002,
+    opengles = 0x00037003,
+    d3d9 = 0x00037004,
+    d3d11 = 0x00037005,
+    vulkan = 0x00037007,
+    metal = 0x00037008,
+    _,
+};
+
+pub const Platform = enum(c_int) {
+    any_platform = 0x00060000,
+    win32 = 0x00060001,
+    cocoa = 0x00060002,
+    wayland = 0x00060003,
+    x11 = 0x00060004,
+    null = 0x00060005,
+    _,
+};
+
+pub const WindowAttribute = enum(c_int) {
+    focused = @intFromEnum(WindowHint.focused),
+    iconified = @intFromEnum(WindowHint.iconified),
+    maximized = @intFromEnum(WindowHint.maximized),
+    visible = @intFromEnum(WindowHint.visible),
+    transparent_framebuffer = @intFromEnum(WindowHint.transparent_framebuffer),
+    hovered = @intFromEnum(WindowHint.hovered),
+    // Above can be set by `glfwSetWindowAttrib`
+    resizable = @intFromEnum(WindowHint.resizable),
+    decorated = @intFromEnum(WindowHint.decorated),
+    auto_iconify = @intFromEnum(WindowHint.auto_iconify),
+    floating = @intFromEnum(WindowHint.floating),
+    mouse_passthrough = @intFromEnum(WindowHint.mouse_passthrough),
+    focus_on_show = @intFromEnum(WindowHint.focus_on_show),
+};
+
+pub const WindowHint = enum(c_int) {
+    pub const cocoa_retina_framebuffer = WindowHint.scale_framebuffer;
+    pub const opengl_debug_context = WindowHint.context_debug;
+
+    // window
+    focused = 0x00020001,
+    iconified = 0x00020002,
+    maximized = 0x00020008,
+    hovered = 0x0002000B,
+    visible = 0x00020004,
+    resizable = 0x00020003,
+    decorated = 0x00020005,
+    auto_iconify = 0x00020006,
+    floating = 0x00020007,
+    transparent_framebuffer = 0x0002000A,
+    focus_on_show = 0x0002000C,
+    center_cursor = 0x00020009,
+    scale_to_monitor = 0x0002200C,
+    scale_framebuffer = 0x00023001,
+    mouse_passthrough = 0x0002000D,
+    position_x = 0x0002000E,
+    position_y = 0x0002000F,
+
+    // framebuffer
+    red_bits = 0x00021001,
+    green_bits = 0x00021002,
+    blue_bits = 0x00021003,
+    alpha_bits = 0x00021004,
+    depth_bits = 0x00021005,
+    stencil_bits = 0x00021006,
+    accum_red_bits = 0x00021007,
+    accum_green_bits = 0x00021008,
+    accum_blue_bits = 0x00021009,
+    accum_alpha_bits = 0x0002100A,
+    aux_buffers = 0x0002100B,
+    stereo = 0x0002100C,
+    samples = 0x0002100D,
+    srgb_capable = 0x0002100E,
+    doublebuffer = 0x00021010,
+
+    // moniter
+    refresh_rate = 0x0002100F,
+
+    // context
+    client_api = 0x00022001,
+    context_creation_api = 0x0002200B,
+    context_version_major = 0x00022002,
+    context_version_minor = 0x00022003,
+    context_revision = 0x00022004,
+    opengl_forward_compat = 0x00022006,
+    context_debug = 0x00022007,
+    opengl_profile = 0x00022008,
+    context_robustness = 0x00022005,
+    context_release_behavior = 0x00022009,
+    context_no_error = 0x0002200A,
+
+    // win32
+    win32_keyboard_menu = 0x00025001,
+    win32_showdefault = 0x00025002,
+
+    // macos
+    cocoa_frame_name = 0x00023002,
+    cocoa_graphics_switching = 0x00023003,
+
+    // x11
+    /// use `glfw.Window.hintString`
+    x11_class_name = 0x00024001,
+    /// use `glfw.Window.hintString`
+    x11_instance_name = 0x00024002,
+
+    // wayland
+    /// use `glfw.Window.hintString`
+    wayland_app_id = 0x00026001,
+};
+
+pub const WindowHintValue = extern union {
+    boolean: bool,
+    xyposition: XYPosition,
+    int_or: IntOrDontCare,
+    int: c_int,
+    client_api: ClientAPI,
+    context_creation_api: ContextCreationAPI,
+    context_robustness: ContextRobustness,
+    context_release_behavior: ContextReleaseBehavior,
+    opengl_profile: OpenGLProfile,
+};
+
+pub const ClientAPI = enum(c_int) {
+    none = 0,
+    opengl = 0x00030001,
+    opengl_es = 0x00030002,
+};
+
+pub const ContextCreationAPI = enum(c_int) {
+    native = 0x00036001,
+    egl = 0x00036002,
+    osmesa = 0x00036003,
+};
+
+pub const OpenGLProfile = enum(c_int) {
+    any = 0,
+    core = 0x00032001,
+    compat = 0x00032002,
+};
+
+pub const ContextRobustness = enum(c_int) {
+    no_robustness = 0,
+    no_reset_notification = 0x00031001,
+    lose_context_on_reset = 0x00031002,
+};
+
+pub const ContextReleaseBehavior = enum(c_int) {
+    any = 0,
+    flush = 0x00035001,
+    none = 0x00035002,
+};
+
+pub const IntOrDontCare = enum(c_int) {
+    dont_care = -1,
+    _,
+
+    pub fn from(val: c_int) IntOrDontCare {
+        return @enumFromInt(val);
+    }
+
+    pub fn to(self: IntOrDontCare) c_int {
+        return @intFromEnum(self);
+    }
+};
+
+pub const XYPosition = enum(c_uint) {
+    any = 0x80000000,
+    _,
+
+    pub fn from(val: c_uint) XYPosition {
+        return @enumFromInt(val);
+    }
+
+    pub fn to(self: XYPosition) c_uint {
+        return @intFromEnum(self);
+    }
+};
