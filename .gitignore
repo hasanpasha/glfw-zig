@@ -1,0 +1,4 @@
+.zig-cache
+zig-out
+src/back.zig
+src/cat.bgra
