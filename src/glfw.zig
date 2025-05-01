@@ -231,7 +231,7 @@ pub const Window = opaque {
     pub const setMaximizeCallback = glfwSetWindowMaximizeCallback;
 
     extern fn glfwSetFramebufferSizeCallback(window: *Window, callback: Framebuffersizefun) Framebuffersizefun;
-    pub const SetFramebufferSizeCallback = glfwSetFramebufferSizeCallback;
+    pub const setFramebufferSizeCallback = glfwSetFramebufferSizeCallback;
 
     extern fn glfwSetWindowContentScaleCallback(window: *Window, callback: Windowcontentscalefun) Windowcontentscalefun;
     pub const setContentScaleCallback = glfwSetWindowContentScaleCallback;
@@ -844,7 +844,6 @@ pub const WindowAttribute = enum(c_int) {
     visible = @intFromEnum(WindowHint.visible),
     transparent_framebuffer = @intFromEnum(WindowHint.transparent_framebuffer),
     hovered = @intFromEnum(WindowHint.hovered),
-    // Above can be set by `glfwSetWindowAttrib`
     resizable = @intFromEnum(WindowHint.resizable),
     decorated = @intFromEnum(WindowHint.decorated),
     auto_iconify = @intFromEnum(WindowHint.auto_iconify),
